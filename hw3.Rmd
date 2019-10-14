@@ -19,7 +19,7 @@ data("brfss_smart2010")
 ```
 
 ## Problem 1
-This data has `r nrow(instacart)` entries and `r ncol(instacart)` variables in total. The structure of data is 
+This data has `r nrow(instacart)` entries and `r ncol(instacart)` variables in total. Each row of this table represents a detailed case of a specific purchasing.
 Key variables are:
 order_id: order identifier
 product_id: product identifier
@@ -36,6 +36,8 @@ aisle_id: aisle identifier
 department_id: department identifier
 aisle: the name of the aisle
 department: the name of the department
+
+For example, in the first row, the user 112108 made an order at 10 am on Thursday. The product is "Bulgarian Yogurt" from aisle "Yogurt", department "Dairy Eggs". The user had purchased this product before. It had been 9 days since the last order.
 
 ```{r}
 # create a dataframe from instacart grouped by aisles and summarize the count of each aisle
@@ -56,10 +58,12 @@ Comment: there are 134 aisles, amongst which fresh vegetables are the most items
 #choose aisles with more than 10000 items
 aisle_new = aisle %>%
   filter(n>10000)
-ggplot(aisle_new, aes(x = aisle, y = n)) + geom_bar(stat = "identity")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + labs(x = "Aisle", y = "The number of items", title = " The number of items ordered in each aisle") 
+ggplot(aisle_new, aes(x = aisle, y = n)) + 
+  geom_bar(stat = "identity")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  labs(x = "Aisle", y = "The number of items", title = " The number of items ordered in each aisle") 
 ```
-Comments: There are `r nrow(aisle_new)` aisles with more than 10000 items ordered in total. As shown in the plot, items of fresh fruits and fresh vegetables which had been ordered obviously outnumbered those of other aisles, with around 150000 items. Items of most of aisles had been ordered for under 25000 times.
+Comments: There are `r nrow(aisle_new)` aisles with more than 10000 items ordered in total. As shown in the plot, items of fresh fruits and fresh vegetables which had been ordered obviously outnumbered those of other aisles, with around 150000 items. Items from majority of aisles had been ordered for below 25000 times.
 
 ```{r}
 # find the three most popular items in aisles "baking ingredients"
@@ -93,9 +97,9 @@ rbind(bake_ingre, dog_food, pack_vege) %>%
 ```
 
 Comments: 
-The three most popular items in aisles “dog food care” are Small Dog Biscuits, Organix Chicken & Brown Rice Recipe, and Snack Sticks Chicken & Rice Recipe Dog Treats, with the amount of 26, 28, and 30 respectively.
+The three most popular items in aisles “dog food care” are Small Dog Biscuits, Organix Chicken & Brown Rice Recipe, and Snack Sticks Chicken & Rice Recipe Dog Treats, with the amount of 26, 28, and 30 respectively. This aisle sold least items compared with the other two.
 The three most popular items in aisles “baking ingredients” are Cane Sugar, Pure Baking Soda, and Light Brown Sugar, with the amount of 336, 387, and 499 respectively.
-The three most popular items in aisles “packaged vegetables fruits” are Organic Blueberries, Organic Raspberries, Organic Baby Spinach, with the amount of 4966, 5546, and 9784 respectively.
+The three most popular items in aisles “packaged vegetables fruits” are Organic Blueberries, Organic Raspberries, Organic Baby Spinach, with the amount of 4966, 5546, and 9784 respectively. This aisle sold most items compared with the other two.
 
 ```{r}
 # show the mean hour of the day at which Pink Lady apples are ordered on each day of the week
@@ -119,7 +123,7 @@ rbind(pink_lady, coff_ice) %>%
   knitr::kable()
 ```
 
-Comments: 
+Comments: Pink Lady Apples were ordered from 11:00 to 14:00 approximately, while coffee ice cream were ordered from 12:00 to 15:30 approximately. 
 
 ## Problem 2
 ```{r}
@@ -173,7 +177,7 @@ mean_state_value %>%
 # Make a “spaghetti” plot of this average value over time within a state
 ggplot(mean_state_value, aes(x=year, y=mean_state_value, color=state)) + geom_line() + labs(x = "Year", y = "Average value", title = "Average value over time within a state")
 ```
-Comments: 
+Comments: Average value over time in the same state doesn't fluctuate a lot over time. However, there are some difference of the range of average value between different states over time. Among these, the average value in WV is obviously smaller than that in other states. Overall, this plot is not intuitive enough to see the pattern clearly because there are too many states and some colors look very similar. We could better divide these states into groups(eg. "East" and "West"), then make a two panel plot to help analysis. 
 
 ```{r}
 # Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
@@ -191,6 +195,7 @@ p2 = ggplot(year10, aes(x = response, y = data_value, color = locationdesc, grou
 
 grid.arrange(p1, p2, nrow = 2)
 ```
+Comments: From 2006 to 2010, the system enlarged its data collecting range from six counties to nine counties. The patterns of responce vs data value almost stay the same from 2006 to 2010. Data value increases from poor responce to good responce, then its peak appears in either good responce or very good responce, finally the value decreases when it goes to excellent responce.    
 
 ## Problem 3
 
@@ -209,17 +214,29 @@ accel =
   ) %>%
   mutate(minute = factor(minute, levels = c(1:1440)))
 ```
-Comment:
+Comments:
+There are `r ncol(accel)` variables and `r nrow(accel)` observations in total after tidying the data.
+Variables: 
+week: in which week the activity counts were recorded
+day_id: on which day the activity counts were recorded
+day: the day of the week
+weekend_weekday: whether the day is weekdays or weekends
+minute: at which minute of that day the activity count was recorded
+activity_counts: activity counts record
 
 ```{r}
 accel %>%
-  group_by(day_id) %>%
+  group_by(day_id, day, week) %>%
   summarize(total_counts = sum(activity_counts)) %>%
   knitr::kable()
 ```
 
+Comments: On day2, day24 and day31, the activity count was obviously lower. On Saturdays of week 4 and 5 (day24 and day31), there is only one activity count for each minute of 24 hours. The data for these two days is abnormal, so we could explore the reason behind. Maybe the accelerometer was worn unobstrusively. In that case, we should probably omit these data when analyzing or evaluating the trend. On day 4, day 10, day 16, day 29, the activity counts are relatively high, with the amount of over 600000. However, there is no apparent trend from this table.
+
 ```{r}
 accel %>%
-  ggplot(aes(x = minute, y = activity_counts, color = day)) + geom_point() + scale_x_discrete(breaks=seq(60,1440,60), labels = as.character(c(1:24))) + labs(x="activity hours", y="activity counts", title="24 hour activity time courses for each day")
+  ggplot(aes(x = minute, y = activity_counts, color = day)) + geom_line(alpha = .5) + scale_x_discrete(breaks=seq(60,1440,60), labels = as.character(c(1:24))) + labs(x="activity hours", y="activity counts", title="24 hour activity time courses for each day")
 ```
+Comments: 
+As shown in the plot, most activity counts for each minute are below 2500. From 19:00 to 22:00, there is a extremely high frequency of high activity counts, mostly up to 5000. The highest activity count is recorded on Wednesday during this period. From 16:00 to 17:00, there are also some high activity counts recorded, especially on Saturday. From 11:00 to 12:00 on Sunday, the activity counts are relatively high compared with other days. On Thursday, the activity counts are highest around 7:00. 
 
